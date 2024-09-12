@@ -1,0 +1,99 @@
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import ttk
+import random
+import os
+import logging
+
+logging.basicConfig(filename="phone_number_generator.log", 
+                    level=logging.INFO, 
+                    format="%(asctime)s - %(levelname)s - %(message)s")
+
+class PhoneNumberGeneratorApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Advanced Phone Number Generator")
+        self.root.geometry("400x300")
+        self.root.resizable(False, False)
+
+        self.country_codes = {
+            'USA/Canada (+1)': '+1',
+            'UK (+44)': '+44',
+            'Germany (+49)': '+49',
+            'India (+91)': '+91',
+            'Australia (+61)': '+61',
+        }
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        header_label = tk.Label(self.root, text="Phone Number Generator", font=("Arial", 16))
+        header_label.pack(pady=10)
+
+        self.country_code_var = tk.StringVar(value="+1")
+        self.create_country_code_dropdown()
+
+        self.generate_button = tk.Button(self.root, text="Generate Phone Number", command=self.generate_phone_number, font=("Arial", 12), bg="#4CAF50", fg="white")
+        self.generate_button.pack(pady=20)
+
+        self.phone_number_label = tk.Label(self.root, text="", font=("Arial", 14), fg="blue")
+        self.phone_number_label.pack(pady=10)
+
+        self.save_button = tk.Button(self.root, text="Save Number", command=self.save_phone_number, font=("Arial", 12), state=tk.DISABLED)
+        self.save_button.pack(pady=10)
+
+    def create_country_code_dropdown(self):
+        label = tk.Label(self.root, text="Select Country Code:", font=("Arial", 12))
+        label.pack(pady=5)
+
+        self.country_code_dropdown = ttk.Combobox(self.root, textvariable=self.country_code_var, state='readonly', font=("Arial", 12))
+        self.country_code_dropdown['values'] = list(self.country_codes.values())
+        self.country_code_dropdown.pack(pady=5)
+
+    def generate_phone_number(self):
+        try:
+            country_code = self.country_code_var.get()
+            if not country_code:
+                raise ValueError("No country code selected.")
+            
+            area_code = random.randint(200, 999)
+            central_office_code = random.randint(200, 999)
+            line_number = random.randint(1000, 9999)
+
+            phone_number = f"{country_code} ({area_code}) {central_office_code}-{line_number}"
+
+            self.phone_number_label.config(text=phone_number)
+            self.save_button.config(state=tk.NORMAL)
+
+            logging.info(f"Generated phone number: {phone_number}")
+
+        except Exception as e:
+            logging.error(f"Error generating phone number: {str(e)}")
+            messagebox.showerror("Error", str(e))
+
+    def save_phone_number(self):
+        try:
+            phone_number = self.phone_number_label.cget("text")
+            if not phone_number:
+                raise ValueError("No phone number to save.")
+            
+            file_path = "generated_phone_numbers.txt"
+
+            with open(file_path, "a") as file:
+                file.write(phone_number + "\n")
+
+            messagebox.showinfo("Success", f"Phone number saved to {file_path}")
+            logging.info(f"Phone number saved to file: {file_path}")
+
+        except Exception as e:
+            logging.error(f"Error saving phone number: {str(e)}")
+            messagebox.showerror("Error", str(e))
+
+
+def main():
+    root = tk.Tk()
+    app = PhoneNumberGeneratorApp(root)
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
